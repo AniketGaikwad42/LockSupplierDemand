@@ -34,10 +34,14 @@ FROM dbo.t_sup_supplier AS child
 INNER JOIN child_suppliers AS cs ON child.sup_id_parent = cs.sup_id
 ),
 
-all_sup_ids AS (
+final_sup_ids AS (
   SELECT base1.sup_id AS sup_id FROM base_suppliers AS base1
   UNION
   SELECT child_sup.sup_id AS sup_id FROM child_suppliers AS child_sup
 )
-
-SELECT * FROM all_sup_ids
+ 
+UPDATE approv
+SET approv.status_code_val = 'pay',
+approv.status_code_new = 'pay'
+FROM t_sup_approval AS approv
+INNER JOIN final_sup_ids AS sup_final ON sup_final.sup_id = approv.sup_id
