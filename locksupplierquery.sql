@@ -1,4 +1,6 @@
---Extracts all the sup_id of all the original supplier and change requests sup_id who are one time vendors and Active--
+-- Query to update the regional status to "paysite" once the one time validity has been passed--
+
+/*This CTE will return all the Group Level Suppliers (sup_id) present in the system*/
 WITH grp_lvl_suppliers AS (
   SELECT 
   DISTINCT slvl.sup_id AS sup_id
@@ -6,6 +8,8 @@ WITH grp_lvl_suppliers AS (
   WHERE slvl.lvl_code = 'ult'
 ),
 
+/*This CTE will extract all the base suppliers (sup_id) from t_sup_suppliers whose one time validity 
+has been passed, excluding the list of group level sup_id from grp_lvl_suppliers CTE*/
 base_suppliers AS (
 SELECT 
 sup.sup_id AS sup_id
@@ -18,6 +22,8 @@ AND sup.sup_id NOT IN (
 SELECT sup_id FROM grp_lvl_suppliers
 )),
 
+/*Below CTE is a recursive CTE to extract N childs of the sup_id present in the base_suppliers and 
+returns their sup_id*/
 child_suppliers AS (
 --Level 1
 SELECT 
@@ -34,12 +40,14 @@ FROM dbo.t_sup_supplier AS child
 INNER JOIN child_suppliers AS cs ON child.sup_id_parent = cs.sup_id
 ),
 
+/*This CTE is used to combine the distinct sup_id from base_suppliers and child_suppliers CTE*/
 final_sup_ids AS (
   SELECT base1.sup_id AS sup_id FROM base_suppliers AS base1
   UNION
   SELECT child_sup.sup_id AS sup_id FROM child_suppliers AS child_sup
 )
  
+/*Updating the regional status in t_sup_approval to "paysite" in all the sup_id in final_sup_ids CTE*/ 
 UPDATE approv
 SET approv.status_code_val = 'pay',
 approv.status_code_new = 'pay'
