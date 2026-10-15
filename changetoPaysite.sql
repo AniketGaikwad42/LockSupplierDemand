@@ -53,3 +53,8 @@ SET approv.status_code_val = 'pay',
 approv.status_code_new = 'pay'
 FROM t_sup_approval AS approv
 INNER JOIN final_sup_ids AS sup_final ON sup_final.sup_id = approv.sup_id
+
+UPDATE sup_pay_lock
+SET sup_pay_lock._sup_lock_paysite_trigerred = 1
+FROM t_sup_supplier AS sup_pay_lock
+INNER JOIN final_sup_ids AS sup_final1 ON sup_final1.sup_id = sup_pay_lock.sup_id
